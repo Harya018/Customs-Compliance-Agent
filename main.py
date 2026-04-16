@@ -5,11 +5,14 @@ import json
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 import os
 
 from models.database import init_db
 from routes.auth_routes import auth_router
 from routes.analyze_routes import analyze_router
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 # ── Structured JSON Logger ─────────────────────────────────────────────────────
 log_dir = "/app/logs" if os.path.exists("/app") else os.path.join(os.path.dirname(__file__), "logs")
@@ -92,4 +95,24 @@ app.include_router(analyze_router, tags=["analyze"])
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    db_ok = False
+    redis_ok = False
+    try:
+        from models.database import get_engine
+        with get_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_ok = True
+    except Exception:
+        pass
+    try:
+        import redis as redis_lib
+        r = redis_lib.from_url(REDIS_URL)
+        r.ping()
+        redis_ok = True
+    except Exception:
+        pass
+    return {
+        "status": "ok",
+        "database": "postgresql" if db_ok else "error",
+        "redis": redis_ok
+    }

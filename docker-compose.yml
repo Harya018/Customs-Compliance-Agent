@@ -11,12 +11,33 @@ services:
       - EMAIL_PASS=${EMAIL_PASS}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - DATABASE_URL=postgresql://customs_user:${POSTGRES_PASSWORD}@postgres:5432/customs_agent
     volumes:
-      - ./users.db:/app/users.db
-      - ./scans.db:/app/scans.db
       - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - customs-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=customs_agent
+      - POSTGRES_USER=customs_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - customs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U customs_user -d customs_agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -39,12 +60,14 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
+      - DATABASE_URL=postgresql://customs_user:${POSTGRES_PASSWORD}@postgres:5432/customs_agent
     volumes:
-      - ./users.db:/app/users.db
-      - ./scans.db:/app/scans.db
       - ./logs:/app/logs
     depends_on:
-      - redis-internal
+      postgres:
+        condition: service_healthy
+      redis-internal:
+        condition: service_started
     networks:
       - customs-network
     restart: unless-stopped
@@ -61,12 +84,14 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
+      - DATABASE_URL=postgresql://customs_user:${POSTGRES_PASSWORD}@postgres:5432/customs_agent
     volumes:
-      - ./users.db:/app/users.db
-      - ./scans.db:/app/scans.db
       - ./logs:/app/logs
     depends_on:
-      - redis-internal
+      postgres:
+        condition: service_healthy
+      redis-internal:
+        condition: service_started
     networks:
       - customs-network
     restart: unless-stopped

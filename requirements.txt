@@ -9,3 +9,5 @@ bcrypt
 python-dotenv
 cryptography
 PyPDF2
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23

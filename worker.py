@@ -23,6 +23,7 @@ WORKER_ID  = os.getenv("WORKER_ID", "worker-default")
 GROQ_KEY   = os.getenv("GROQ_KEY", "")
 EMAIL_USER = os.getenv("EMAIL_USER", "")
 EMAIL_PASS = os.getenv("EMAIL_PASS", "")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://customs_user:customs_secure_password_2024@localhost:5432/customs_agent")
 
 UIROBOT    = r"C:\Users\harya\AppData\Local\Programs\UiPathPlatform\Studio\26.0.190-cloud.22532\UiRobot.exe"
 PACKAGE    = r"C:\CustomsAgent\CustomsComplianceAgent.1.0.1.nupkg"
@@ -123,7 +124,7 @@ def process_document(file_path: str, country: str, groq_key: str, scan_id: str =
     job_id = None
     
     try:
-        from database import update_scan_result
+        from models.database import update_scan_result
         try:
             current_job = get_current_job()
             job_id = current_job.id if current_job else None
@@ -186,7 +187,7 @@ def process_document(file_path: str, country: str, groq_key: str, scan_id: str =
         result["error"] = f"Critical worker failure: {str(general_err)}"
         print(f"[{WORKER_ID}] CRITICAL ERROR:", result["error"])
         try:
-            from database import update_scan_result
+            from models.database import update_scan_result
             if scan_id: update_scan_result(scan_id, "error", result)
         except Exception: pass
     finally:
