@@ -56,3 +56,14 @@ Autonomous customs compliance platform with UiPath document processing, Groq AI 
 - India (IN) — threshold USD 800, Bill of Entry required above
 - UAE — threshold USD 1000, VAT registration required
 - USA — threshold USD 800, Section 321 de minimis applies
+
+## Screenshots
+
+### Document Upload & Processing pipeline
+![Document Upload & Processing](assets/scan_process.png)
+
+### Real-Time Extracted Fields & Trace
+![Extracted Fields](assets/extracted_fields.png)
+
+### Robust AI Compliance Advisor & Audit Trail
+![Compliance Advisor](assets/compliance_advisor.png)
