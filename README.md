@@ -60,10 +60,10 @@ Autonomous customs compliance platform with UiPath document processing, Groq AI 
 ## Screenshots
 
 ### Document Upload & Processing pipeline
-![Document Upload & Processing](assets/scan_process.png)
+<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/scan_process.png" width="100%" alt="Document Upload & Processing">
 
 ### Real-Time Extracted Fields & Trace
-![Extracted Fields](assets/extracted_fields.png)
+<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/extracted_fields.png" width="100%" alt="Extracted Fields">
 
 ### Robust AI Compliance Advisor & Audit Trail
-![Compliance Advisor](assets/compliance_advisor.png)
+<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/compliance_advisor.png" width="100%" alt="Compliance Advisor">
