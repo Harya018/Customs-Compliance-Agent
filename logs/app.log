@@ -3,3 +3,17 @@
 2026-04-16 10:27:29,440 - INFO - [ReqID: 78c14f91-f2c8-4e0f-95aa-2bd8c35dc749] END GET /health | Status: 200 | Time: 1.79ms
 2026-04-16 10:27:38,569 - INFO - [ReqID: 78779f70-5852-40bb-8634-addcc8580ed0] START GET /health | User: Anonymous
 2026-04-16 10:27:38,570 - INFO - [ReqID: 78779f70-5852-40bb-8634-addcc8580ed0] END GET /health | Status: 200 | Time: 1.81ms
+2026-04-16 10:29:08,592 - INFO - [ReqID: a60dad44-1e09-42b4-acfc-25a1c1b84706] START OPTIONS /auth/login | User: Anonymous
+2026-04-16 10:29:08,597 - INFO - [ReqID: a60dad44-1e09-42b4-acfc-25a1c1b84706] END OPTIONS /auth/login | Status: 200 | Time: 5.22ms
+2026-04-16 10:29:08,603 - INFO - [ReqID: a0ef2b00-33e5-4cea-b7c5-9e53f1b476d1] START POST /auth/login | User: Anonymous
+2026-04-16 10:29:09,152 - INFO - [ReqID: a0ef2b00-33e5-4cea-b7c5-9e53f1b476d1] END POST /auth/login | Status: 200 | Time: 548.58ms
+2026-04-16 10:29:17,487 - INFO - [ReqID: 13880e2a-94af-417e-91f1-99edcfd10857] START OPTIONS /analyze | User: Anonymous
+2026-04-16 10:29:17,512 - INFO - [ReqID: 13880e2a-94af-417e-91f1-99edcfd10857] END OPTIONS /analyze | Status: 200 | Time: 24.89ms
+2026-04-16 10:29:17,529 - INFO - [ReqID: 5edad9b0-2af8-43b4-ad6e-34dff906a875] START POST /analyze | User: Anonymous
+2026-04-16 10:29:18,805 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 10:29:18,865 - INFO - [ReqID: 5edad9b0-2af8-43b4-ad6e-34dff906a875] END POST /analyze | Status: 200 | Time: 1336.99ms
+2026-04-16 10:29:19,180 - INFO - [ReqID: 856c9ef9-a532-46c8-b53b-19bed7edd74e] START OPTIONS /explain | User: Anonymous
+2026-04-16 10:29:19,181 - INFO - [ReqID: 856c9ef9-a532-46c8-b53b-19bed7edd74e] END OPTIONS /explain | Status: 200 | Time: 1.13ms
+2026-04-16 10:29:19,187 - INFO - [ReqID: 04affd3c-6f7f-4e6c-ab18-9654f03f84ae] START POST /explain | User: Anonymous
+2026-04-16 10:29:20,178 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 10:29:20,186 - INFO - [ReqID: 04affd3c-6f7f-4e6c-ab18-9654f03f84ae] END POST /explain | Status: 200 | Time: 999.66ms
