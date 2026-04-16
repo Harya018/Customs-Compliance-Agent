@@ -17,3 +17,32 @@
 2026-04-16 10:29:19,187 - INFO - [ReqID: 04affd3c-6f7f-4e6c-ab18-9654f03f84ae] START POST /explain | User: Anonymous
 2026-04-16 10:29:20,178 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 2026-04-16 10:29:20,186 - INFO - [ReqID: 04affd3c-6f7f-4e6c-ab18-9654f03f84ae] END POST /explain | Status: 200 | Time: 999.66ms
+2026-04-16 11:15:03,019 - INFO - [ReqID: 96c4652e-81b4-484f-a35e-f2927391b371] START OPTIONS /analyze | User: Anonymous
+2026-04-16 11:15:03,039 - INFO - [ReqID: 96c4652e-81b4-484f-a35e-f2927391b371] END OPTIONS /analyze | Status: 200 | Time: 26.80ms
+2026-04-16 11:15:03,060 - INFO - [ReqID: c0e954c1-166a-4d43-9eeb-a4e97fc1ef2a] START POST /analyze | User: Anonymous
+2026-04-16 11:15:03,098 - INFO - [ReqID: c0e954c1-166a-4d43-9eeb-a4e97fc1ef2a] END POST /analyze | Status: 401 | Time: 46.51ms
+2026-04-16 11:15:15,026 - INFO - [ReqID: af363500-07cc-4905-acb0-29241af550f3] START OPTIONS /auth/login | User: Anonymous
+2026-04-16 11:15:15,027 - INFO - [ReqID: af363500-07cc-4905-acb0-29241af550f3] END OPTIONS /auth/login | Status: 200 | Time: 1.12ms
+2026-04-16 11:15:15,032 - INFO - [ReqID: f9ced715-a218-4985-b3da-4907d7d33a23] START POST /auth/login | User: Anonymous
+2026-04-16 11:15:15,642 - INFO - [ReqID: f9ced715-a218-4985-b3da-4907d7d33a23] END POST /auth/login | Status: 200 | Time: 610.28ms
+2026-04-16 11:15:18,796 - INFO - [ReqID: 10519ebb-f598-436c-8cd5-783c79612fae] START POST /analyze | User: Anonymous
+2026-04-16 11:15:19,961 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 11:15:20,131 - INFO - [ReqID: 10519ebb-f598-436c-8cd5-783c79612fae] END POST /analyze | Status: 200 | Time: 1335.10ms
+2026-04-16 11:15:20,453 - INFO - [ReqID: e1c061bb-cfe6-46e6-b536-5b65c59348c7] START OPTIONS /explain | User: Anonymous
+2026-04-16 11:15:20,455 - INFO - [ReqID: e1c061bb-cfe6-46e6-b536-5b65c59348c7] END OPTIONS /explain | Status: 200 | Time: 1.83ms
+2026-04-16 11:15:20,460 - INFO - [ReqID: 07c363cf-c3a7-4124-9734-9f9ddde6777f] START POST /explain | User: Anonymous
+2026-04-16 11:15:22,552 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 11:15:22,562 - INFO - [ReqID: 07c363cf-c3a7-4124-9734-9f9ddde6777f] END POST /explain | Status: 200 | Time: 2102.83ms
+2026-04-16 11:18:26,078 - INFO - Database initialized. Starting application.
+2026-04-16 11:19:06,985 - INFO - [ReqID: 5a641025-6749-4502-a8ad-99ff5f601730] START POST /analyze | User: Anonymous
+2026-04-16 11:19:08,033 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 11:19:08,055 - INFO - [ReqID: 5a641025-6749-4502-a8ad-99ff5f601730] END POST /analyze | Status: 200 | Time: 1070.00ms
+2026-04-16 11:19:08,377 - INFO - [ReqID: 5bfeb747-c3ad-4d9b-9c2b-d5c49da33270] START POST /explain | User: Anonymous
+2026-04-16 11:19:08,984 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 11:19:08,994 - INFO - [ReqID: 5bfeb747-c3ad-4d9b-9c2b-d5c49da33270] END POST /explain | Status: 200 | Time: 618.26ms
+2026-04-16 11:21:10,730 - INFO - Database initialized. Starting application.
+2026-04-16 11:22:09,238 - INFO - [ReqID: a3ef8166-0c44-42a4-a3d0-3e4630fb66f4] START POST /analyze | User: Anonymous
+2026-04-16 11:22:09,319 - INFO - [ReqID: a3ef8166-0c44-42a4-a3d0-3e4630fb66f4] END POST /analyze | Status: 200 | Time: 81.32ms
+2026-04-16 11:22:09,636 - INFO - [ReqID: 1a2e4afa-427a-45ba-a820-45e7b326f13e] START POST /explain | User: Anonymous
+2026-04-16 11:22:10,441 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 11:22:10,443 - INFO - [ReqID: 1a2e4afa-427a-45ba-a820-45e7b326f13e] END POST /explain | Status: 200 | Time: 808.29ms
