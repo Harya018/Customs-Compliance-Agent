@@ -1,0 +1,38 @@
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - customs-network
+
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - GROQ_KEY=${GROQ_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - customs-network
+    volumes:
+      - ./users.db:/app/users.db
+      - ./scans.db:/app/scans.db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - customs-network
+
+networks:
+  customs-network:
+    driver: bridge

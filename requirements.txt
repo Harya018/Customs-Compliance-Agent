@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+httpx
+python-multipart
+redis
+rq==1.16.1
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
