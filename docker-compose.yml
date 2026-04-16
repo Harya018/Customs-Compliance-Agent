@@ -12,6 +12,12 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - DATABASE_URL=postgresql://customs_user:${POSTGRES_PASSWORD}@postgres:5432/customs_agent
+      - UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID}
+      - UIPATH_CLIENT_SECRET=${UIPATH_CLIENT_SECRET}
+      - UIPATH_ORG=${UIPATH_ORG}
+      - UIPATH_TENANT=${UIPATH_TENANT}
+      - UIPATH_FOLDER=${UIPATH_FOLDER}
+      - UIPATH_PROCESS_NAME=${UIPATH_PROCESS_NAME}
     volumes:
       - ./logs:/app/logs
     depends_on:
