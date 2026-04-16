@@ -46,3 +46,59 @@
 2026-04-16 11:22:09,636 - INFO - [ReqID: 1a2e4afa-427a-45ba-a820-45e7b326f13e] START POST /explain | User: Anonymous
 2026-04-16 11:22:10,441 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 2026-04-16 11:22:10,443 - INFO - [ReqID: 1a2e4afa-427a-45ba-a820-45e7b326f13e] END POST /explain | Status: 200 | Time: 808.29ms
+2026-04-16 11:23:48,148 - INFO - Database initialized. Starting application.
+2026-04-16 11:24:23,051 - INFO - [ReqID: eef71ea4-739e-46ab-97df-234f3556e437] START POST /analyze | User: Anonymous
+2026-04-16 11:24:23,097 - INFO - [ReqID: eef71ea4-739e-46ab-97df-234f3556e437] END POST /analyze | Status: 200 | Time: 45.81ms
+2026-04-16 11:24:23,405 - INFO - [ReqID: cfe19a3a-a373-4aca-947f-fa1621d3e73f] START POST /explain | User: Anonymous
+2026-04-16 11:24:24,172 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 11:24:24,198 - INFO - [ReqID: cfe19a3a-a373-4aca-947f-fa1621d3e73f] END POST /explain | Status: 200 | Time: 794.05ms
+2026-04-16 12:10:29,210 - INFO - [ReqID: 2a010a0d-b0a2-4fc0-9abd-43594997b014] START OPTIONS /analyze | User: Anonymous
+2026-04-16 12:10:29,230 - INFO - [ReqID: 2a010a0d-b0a2-4fc0-9abd-43594997b014] END OPTIONS /analyze | Status: 200 | Time: 23.35ms
+2026-04-16 12:10:29,247 - INFO - [ReqID: 66bc6938-983d-4db3-b751-bdbbb30de309] START POST /analyze | User: Anonymous
+2026-04-16 12:10:29,285 - INFO - [ReqID: 66bc6938-983d-4db3-b751-bdbbb30de309] END POST /analyze | Status: 401 | Time: 43.68ms
+2026-04-16 12:10:40,446 - INFO - [ReqID: 15afdada-02c9-45a2-877e-c0fa277162e4] START OPTIONS /auth/login | User: Anonymous
+2026-04-16 12:10:40,449 - INFO - [ReqID: 15afdada-02c9-45a2-877e-c0fa277162e4] END OPTIONS /auth/login | Status: 200 | Time: 3.46ms
+2026-04-16 12:10:40,455 - INFO - [ReqID: 57c7a04f-184a-4634-9d4c-d897834b18b8] START POST /auth/login | User: Anonymous
+2026-04-16 12:10:40,892 - INFO - [ReqID: 57c7a04f-184a-4634-9d4c-d897834b18b8] END POST /auth/login | Status: 200 | Time: 436.32ms
+2026-04-16 12:10:43,577 - INFO - [ReqID: 95afc823-398f-4e44-854d-edad80d4fd6c] START POST /analyze | User: Anonymous
+2026-04-16 12:10:44,075 - INFO - [ReqID: 95afc823-398f-4e44-854d-edad80d4fd6c] END POST /analyze | Status: 200 | Time: 498.31ms
+2026-04-16 12:10:44,404 - INFO - [ReqID: 68bf6e03-4320-49f7-84c8-8888410ba0a3] START OPTIONS /explain | User: Anonymous
+2026-04-16 12:10:44,422 - INFO - [ReqID: 68bf6e03-4320-49f7-84c8-8888410ba0a3] END OPTIONS /explain | Status: 200 | Time: 25.23ms
+2026-04-16 12:10:44,445 - INFO - [ReqID: 91cb12ff-1d78-4450-9fe4-107d87f23c6f] START POST /explain | User: Anonymous
+2026-04-16 12:10:45,517 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 12:10:45,561 - INFO - [ReqID: 91cb12ff-1d78-4450-9fe4-107d87f23c6f] END POST /explain | Status: 200 | Time: 1119.20ms
+2026-04-16 13:56:47,310 - INFO - [ReqID: d11e34d5-b4ec-448c-bd0c-87ea54e51e1d] START OPTIONS /auth/login | User: Anonymous
+2026-04-16 13:56:47,359 - INFO - [ReqID: d11e34d5-b4ec-448c-bd0c-87ea54e51e1d] END OPTIONS /auth/login | Status: 200 | Time: 52.25ms
+2026-04-16 13:56:47,374 - INFO - [ReqID: 3846378a-f2a6-4902-a1ed-ec7f402c13db] START POST /auth/login | User: Anonymous
+2026-04-16 13:56:47,972 - INFO - [ReqID: 3846378a-f2a6-4902-a1ed-ec7f402c13db] END POST /auth/login | Status: 200 | Time: 597.54ms
+2026-04-16 13:56:53,955 - INFO - [ReqID: 55b8cbe0-a89d-492a-8af2-aad4b0b19fd3] START OPTIONS /analyze | User: Anonymous
+2026-04-16 13:56:53,961 - INFO - [ReqID: 55b8cbe0-a89d-492a-8af2-aad4b0b19fd3] END OPTIONS /analyze | Status: 200 | Time: 5.50ms
+2026-04-16 13:56:53,994 - INFO - [ReqID: a5771077-2727-431d-a72e-80e14f6eb0d3] START POST /analyze | User: Anonymous
+2026-04-16 13:56:54,132 - INFO - [ReqID: a5771077-2727-431d-a72e-80e14f6eb0d3] END POST /analyze | Status: 200 | Time: 149.77ms
+2026-04-16 13:56:54,444 - INFO - [ReqID: 455c0f7e-f080-4f5d-b173-2e38efe5e3ee] START OPTIONS /explain | User: Anonymous
+2026-04-16 13:56:54,449 - INFO - [ReqID: 455c0f7e-f080-4f5d-b173-2e38efe5e3ee] END OPTIONS /explain | Status: 200 | Time: 5.21ms
+2026-04-16 13:56:54,465 - INFO - [ReqID: 40cdcd4c-0da3-4560-ad56-4da6501d813c] START POST /explain | User: Anonymous
+2026-04-16 13:56:55,374 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-16 13:56:55,384 - INFO - [ReqID: 40cdcd4c-0da3-4560-ad56-4da6501d813c] END POST /explain | Status: 200 | Time: 925.54ms
+{"timestamp": "2026-04-16 17:13:19,643", "level": "INFO", "endpoint": "", "user_id": "", "request_id": "", "message": "Database initialized. Starting application.", "service": "customs-backend"}
+{"timestamp": "2026-04-16 17:13:34,738", "level": "INFO", "endpoint": "/health", "user_id": "Anonymous", "request_id": "2e011747-97f3-4d83-aca2-8ed9e927d644", "message": "START GET /health | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 17:13:34,744", "level": "INFO", "endpoint": "/health", "user_id": "Anonymous", "request_id": "2e011747-97f3-4d83-aca2-8ed9e927d644", "message": "END GET /health | Status: 200 | Time: 5.63ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 17:57:43,571", "level": "INFO", "endpoint": "/health", "user_id": "Anonymous", "request_id": "949bc792-1e56-41d1-8f35-419a54002011", "message": "START GET /health | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 17:57:43,594", "level": "INFO", "endpoint": "/health", "user_id": "Anonymous", "request_id": "949bc792-1e56-41d1-8f35-419a54002011", "message": "END GET /health | Status: 200 | Time: 23.43ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:30,474", "level": "INFO", "endpoint": "/auth/login", "user_id": "Anonymous", "request_id": "ae83c39c-1772-48bc-b72e-d81bc4ec453d", "message": "START OPTIONS /auth/login | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:30,486", "level": "INFO", "endpoint": "/auth/login", "user_id": "Anonymous", "request_id": "ae83c39c-1772-48bc-b72e-d81bc4ec453d", "message": "END OPTIONS /auth/login | Status: 200 | Time: 14.68ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:30,494", "level": "INFO", "endpoint": "/auth/login", "user_id": "Anonymous", "request_id": "89e20605-e443-420f-ac47-35015fd55a9d", "message": "START POST /auth/login | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:31,006", "level": "INFO", "endpoint": "/auth/login", "user_id": "Anonymous", "request_id": "89e20605-e443-420f-ac47-35015fd55a9d", "message": "END POST /auth/login | Status: 200 | Time: 512.25ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:42,469", "level": "INFO", "endpoint": "/analyze", "user_id": "Anonymous", "request_id": "6b756063-db44-4257-812a-9da91b64194f", "message": "START OPTIONS /analyze | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:42,482", "level": "INFO", "endpoint": "/analyze", "user_id": "Anonymous", "request_id": "6b756063-db44-4257-812a-9da91b64194f", "message": "END OPTIONS /analyze | Status: 200 | Time: 12.84ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:42,507", "level": "INFO", "endpoint": "/analyze", "user_id": "6f9405e6-bf0a-4351-9618-62b93a9fd4f0", "request_id": "d4abeac0-20bd-49f3-b7e2-650cbb2b30c4", "message": "START POST /analyze | User: 6f9405e6-bf0a-4351-9618-62b93a9fd4f0", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:43,018", "level": "INFO", "endpoint": "/analyze", "user_id": "6f9405e6-bf0a-4351-9618-62b93a9fd4f0", "request_id": "d4abeac0-20bd-49f3-b7e2-650cbb2b30c4", "message": "END POST /analyze | Status: 200 | Time: 511.32ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:43,367", "level": "INFO", "endpoint": "/explain", "user_id": "Anonymous", "request_id": "6c046e65-6663-401a-bc9e-43e43213ef06", "message": "START OPTIONS /explain | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:43,370", "level": "INFO", "endpoint": "/explain", "user_id": "Anonymous", "request_id": "6c046e65-6663-401a-bc9e-43e43213ef06", "message": "END OPTIONS /explain | Status: 200 | Time: 3.19ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:43,408", "level": "INFO", "endpoint": "/explain", "user_id": "6f9405e6-bf0a-4351-9618-62b93a9fd4f0", "request_id": "72ebecfb-e542-4032-8f23-6913fe81081a", "message": "START POST /explain | User: 6f9405e6-bf0a-4351-9618-62b93a9fd4f0", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:45,079", "level": "INFO", "endpoint": "", "user_id": "", "request_id": "", "message": "HTTP Request: POST https://api.groq.com/openai/v1/chat/completions \"HTTP/1.1 200 OK\"", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:16:45,097", "level": "INFO", "endpoint": "/explain", "user_id": "6f9405e6-bf0a-4351-9618-62b93a9fd4f0", "request_id": "72ebecfb-e542-4032-8f23-6913fe81081a", "message": "END POST /explain | Status: 200 | Time: 1689.77ms", "service": "customs-backend"}
+{"timestamp": "2026-04-16 18:26:20,528", "level": "INFO", "endpoint": "", "user_id": "", "request_id": "", "message": "Database initialized. Starting application.", "service": "customs-backend"}
+{"timestamp": "2026-04-16 19:33:02,070", "level": "INFO", "endpoint": "", "user_id": "", "request_id": "", "message": "Database initialized. Starting application.", "service": "customs-backend"}
+{"timestamp": "2026-04-16 19:39:46,174", "level": "INFO", "endpoint": "/health", "user_id": "Anonymous", "request_id": "8f4661f9-6907-4683-9579-bf2ebe163f42", "message": "START GET /health | User: Anonymous", "service": "customs-backend"}
+{"timestamp": "2026-04-16 19:39:46,179", "level": "INFO", "endpoint": "/health", "user_id": "Anonymous", "request_id": "8f4661f9-6907-4683-9579-bf2ebe163f42", "message": "END GET /health | Status: 200 | Time: 6.12ms", "service": "customs-backend"}

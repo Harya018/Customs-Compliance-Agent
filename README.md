@@ -1,69 +1,246 @@
 # Customs Compliance Agent
 
+> **Autonomous customs compliance platform with AI document extraction, JWT + MFA + Google OAuth security, event-driven async processing with 2 parallel workers, full Loki + Grafana observability stack, and Kubernetes Minikube deployment.**
+
+---
+
 ## Problem Statement
-Build an AI agent that extracts, validates, and generates customs-compliant documentation from invoices and bills of lading.
+
+Build an AI agent that extracts, validates, and generates customs-compliant documentation from invoices and bills of lading — validating against country-specific regulations for India, UAE, and USA.
+
+---
 
 ## Solution
-Autonomous customs compliance platform with UiPath document processing, Groq AI classification, Redis queue with parallel workers, JWT authentication, Multi-Factor Authentication (OTP), local DB encryption, and multi-country validation.
+
+An autonomous, production-grade customs compliance platform featuring:
+- **UiPath + Groq LLaMA 3.1** AI extraction pipeline with hardened fallback
+- **JWT + MFA (OTP) + Google OAuth** multi-layer authentication
+- **Redis queue + 2 parallel workers** with atomic pickup and idempotency
+- **Loki + Promtail + Grafana** full-stack observability (backend API + async worker traces)
+- **Fernet PII encryption** at rest with email masking in all API responses
+- **Kubernetes Minikube** deployment with HPA (2–10 worker replicas)
+
+---
 
 ## Tech Stack
-- Frontend: React.js (Docker)
-- Backend: FastAPI Python (Docker) utilizing MVC architecture
-- AI Orchestration: UiPath + Groq LLaMA 3.1
-- Queue: Redis + RQ (2 parallel workers, atomic pickup, idempotency)
-- Auth: JWT + bcrypt + RBAC (Admin/User roles) + MFA OTP via SMTP
-- Database: SQLite (users.db, scans.db) with Singleton Connection Pools
-- Encryption: Fernet Symmetric Encryption for DB PII data
-- Container: Docker + docker-compose (single network)
+
+| Layer | Technology |
+|---|---|
+| Frontend | React.js + @react-oauth/google (Docker, port 3000) |
+| Backend | FastAPI Python 3.12 (Docker, port 8000) |
+| AI Orchestration | UiPath Studio + Groq LLaMA 3.1 (with hardened fallback) |
+| Queue | Redis + RQ — 2 parallel workers, atomic BLPOP pickup, idempotency via Redis SETEX |
+| Auth | JWT + bcrypt + RBAC (Admin/User) + MFA OTP (Gmail SMTP) + Google OAuth |
+| Database | SQLite — `users.db` (Fernet-encrypted PII), `scans.db` (scan history) |
+| Observability | Loki (port 3100) + Promtail + Grafana (port 3001) |
+| Container | Docker + docker-compose (single `customs-network`, 9 services) |
+| Kubernetes | Minikube + kubectl — `k8s/` manifests with HPA |
+
+---
 
 ## Architecture
-- **MVC Pattern**: Backend codebase organized strictly into `models/`, `controllers/`, and `routes/`.
-- **Event-driven pipeline**: Browser → FastAPI → Redis Queue / Direct AI Fallback → UiPath / Groq AI → Result.
 
-## How to Run
-1. Start Redis: `docker run -d -p 6379:6379 --name standalone-redis redis:alpine`
-2. Configure environment: Copy `docker-compose.example.yml` to `docker-compose.yml` and add actual environment variables, or use `.env`. Ensure `ENCRYPTION_KEY` is set.
-3. Start containers: `cd C:\CustomsAgent && docker-compose up --build -d`
-4. Start workers (optional legacy queue support): `.\start_workers.ps1`
-5. Open: `http://localhost:3000`
+```
+Browser (React :3000)
+      │
+      ▼
+FastAPI Backend (:8000)
+      │  JWT Auth + MFA + Google OAuth
+      │  X-Request-ID tracing middleware
+      │  Fernet email encryption
+      │
+      ├─── SQLite users.db  (bcrypt passwords, encrypted emails)
+      ├─── SQLite scans.db  (scan history + results)
+      │
+      └─── Redis Queue (customs_queue)
+                │  Atomic BLPOP — each job picked by exactly one worker
+                │
+          ┌─────┴──────┐
+       worker-1      worker-2      ← 2 containers in docker-compose
+          │              │           each writes to logs/worker.log
+          └──────┬───────┘
+                 │
+     UiPath (Windows) OR Groq AI fallback
+                 │
+         Compliance check + Email notification
 
-## API Endpoints
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | /auth/register | Register user | No |
-| POST | /auth/login | Login, triggers MFA if enabled | No |
-| POST | /auth/verify-otp | Verify short-lived OTP tokens | No |
-| POST | /auth/refresh | Refresh token | No |
-| GET | /auth/me | Current user (with masked PII) | Yes |
-| POST | /analyze | Analyze document | Yes |
-| GET | /job/{id} | Job status | Yes |
-| POST | /explain | AI compliance advice | Yes |
-| GET | /history | Scan history | Yes |
-| GET | /health | System health | No |
+Observability:
+  logs/app.log ──┐
+  logs/worker.log─┤── Promtail → Loki (:3100) → Grafana (:3001)
+```
 
-## Security & Tracing
-- **JWT & Roles**: Access tokens (30 min expiry), Refresh tokens (7 days), Admin/User scopes.
-- **MFA (OTP via Email)**: Integrated SMTP Email pipeline capable of dispatching 6-digit verifications.
-- **PII Encryption**: Raw email IDs are dynamically encrypted at rest within `users.db` via `cryptography.fernet`.
-- **Data Protection**: PII is deeply masked before dispatch in API payloads (e.g., `u***@domain.com`).
-- **Distributed Logging & Tracing**: All API calls assign UUID `X-Request-ID` headers and log latency/status natively down to `/logs/app.log` mount volumes.
+**Event-driven pipeline:**
+`Browser → POST /analyze → FastAPI → Redis Queue → worker-1 OR worker-2 → UiPath/Groq → DB update → JSON response`
+
+---
+
+## Platform Security
+
+| Feature | Implementation |
+|---|---|
+| Login | JWT access token (30 min) + refresh token (7 days) |
+| MFA | 6-digit OTP via Gmail SMTP — `secrets.randbelow`, bcrypt-hashed in DB, 10 min TTL |
+| Google OAuth | `POST /auth/google` → userinfo API → find/create user → JWT |
+| RBAC | `admin` sees all scans; `user` sees only their own |
+| PII Protection | Fernet symmetric encryption on `email` column in `users.db` |
+| API Masking | All responses return `u***@domain.com` — raw email never exposed |
+| Password | bcrypt with salt rounds |
+| Request Tracing | `X-Request-ID` UUID injected on every request, logged to Loki |
+
+---
 
 ## Scalability
-- **Connection Pools**: SQLite operates over safely persisted singletons (`check_same_thread=False`).
-- **Parallel Workers**: Redis queue designed for horizontal atomic scaling without duplicate processing conflicts.
 
-## Countries Supported
-- India (IN) — threshold USD 800, Bill of Entry required above
-- UAE — threshold USD 1000, VAT registration required
-- USA — threshold USD 800, Section 321 de minimis applies
+| Feature | Implementation |
+|---|---|
+| Event-driven | Redis queue decouples HTTP layer from processing |
+| Separate workers | `worker_traced.py` runs as independent Docker containers — NOT inline in FastAPI |
+| 2 parallel workers | `worker-1` and `worker-2` in docker-compose, both listening on `customs_queue` |
+| Atomic pickup | RQ's `SimpleWorker` uses Redis `BLPOP` — each job processed by exactly one worker |
+| Idempotency | `Redis SETEX` key per `job_id` with 7-day TTL — duplicate jobs skipped |
+| Kubernetes | `k8s/` manifests with `worker` Deployment (2 replicas) + HPA scaling to 10 |
+
+---
+
+## Observability
+
+| Signal | Source | Label |
+|---|---|---|
+| API request logs | `logs/app.log` | `service=backend`, `endpoint`, `user_id`, `request_id` |
+| Worker job logs | `logs/worker.log` | `service=worker`, `worker_id`, `job_id`, `status`, `duration_ms` |
+
+**Grafana dashboard panels** (auto-provisioned at startup):
+1. Total API requests per minute
+2. Error rate (ERROR level)
+3. Endpoint breakdown (pie chart)
+4. Request log search by `X-Request-ID`
+5. Worker processing time trend
+
+---
+
+## Maintainability
+
+```
+models/             ← Data layer (SQLite singleton, Fernet encryption)
+controllers/        ← Business logic (Auth, Scan CRUD)
+routes/             ← HTTP layer (FastAPI routers)
+worker.py           ← Core job processing logic
+worker_traced.py    ← Async worker entry point with JSON logging
+main.py             ← App entrypoint, middleware, route mounting
+observability/      ← Loki, Promtail, Grafana configs
+k8s/                ← Kubernetes manifests
+```
+
+- **MVC pattern**: models / controllers / routes fully separated
+- **Singleton DB**: `get_user_db()` and `get_scan_db()` return one connection per lifetime
+- **Structured JSON logging**: every request and every worker job emits a parseable JSON line
+- **REST API**: proper HTTP verbs, status codes, and error bodies throughout
+- **Error handling**: every endpoint has try/except blocks; fallbacks never crash the response
+
+---
+
+## How to Run
+
+### Prerequisites
+- Docker Desktop running
+- (Optional) Redis standalone: `docker run -d -p 6379:6379 --name standalone-redis redis:alpine`
+
+### Start Everything
+```bash
+docker-compose up --build -d
+```
+
+### Verify
+```bash
+curl http://localhost:8000/health   # → {"status":"ok"}
+curl -I http://localhost:3000       # → 200 OK
+curl http://localhost:3100/ready    # → ready
+```
+
+### Access
+| Service | URL | Credentials |
+|---|---|---|
+| Frontend | http://localhost:3000 | Register or Sign In |
+| Backend API | http://localhost:8000/docs | — |
+| Grafana | http://localhost:3001 | `admin` / `admin` |
+| Loki | http://localhost:3100/ready | — |
+
+---
+
+## Running Containers (docker-compose)
+
+| Container | Image | Port |
+|---|---|---|
+| `customsagent-backend-1` | Python 3.12-slim | 8000 |
+| `customsagent-frontend-1` | Node 22-alpine | 3000 |
+| `customsagent-worker-1-1` | Python 3.12-slim | — |
+| `customsagent-worker-2-1` | Python 3.12-slim | — |
+| `customsagent-redis-internal-1` | redis:alpine | 6379 (internal) |
+| `customsagent-loki-1` | grafana/loki:2.9.0 | 3100 |
+| `customsagent-promtail-1` | grafana/promtail:2.9.0 | — |
+| `customsagent-grafana-1` | grafana/grafana:10.0.0 | 3001 |
+| `standalone-redis` | redis:alpine | 6379 |
+
+---
+
+## API Reference
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/auth/register` | No | Create account |
+| POST | `/auth/login` | No | Login — returns JWT or triggers MFA |
+| POST | `/auth/verify-otp` | No | Submit OTP → full JWT |
+| POST | `/auth/google` | No | Google OAuth → JWT |
+| POST | `/auth/refresh` | No | Refresh access token |
+| GET | `/auth/me` | Yes | Current user (masked email) |
+| POST | `/analyze` | Yes | Upload document → extract + validate |
+| POST | `/explain` | Yes | Groq AI compliance explanation |
+| GET | `/history` | Yes | Scan history (last 20 / all for admin) |
+| GET | `/history/{id}` | Yes | Single scan detail |
+| GET | `/health` | No | Health check |
+
+---
+
+## Kubernetes Deployment (Minikube)
+
+```powershell
+cd k8s
+.\deploy.ps1
+```
+
+Resources created:
+- Namespace `customs-agent`
+- Secrets from `k8s/secrets.yaml`
+- Redis PVC + Deployment + Service
+- Backend PVC + Deployment (2 replicas) + Service + readiness/liveness probes
+- Frontend Deployment + NodePort Service (port 30000)
+- Worker Deployment (2 replicas) — each pod gets unique `WORKER_ID` via Downward API
+- HPA: 2–10 worker replicas at CPU > 70%
+
+---
 
 ## Screenshots
 
-### Document Upload & Processing pipeline
-<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/scan_process.png" width="100%" alt="Document Upload & Processing">
+<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/scan_process.png" width="100%" alt="Document Analysis Flow" />
 
-### Real-Time Extracted Fields & Trace
-<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/extracted_fields.png" width="100%" alt="Extracted Fields">
+<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/extracted_fields.png" width="100%" alt="Extracted Fields Grid" />
 
-### Robust AI Compliance Advisor & Audit Trail
-<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/compliance_advisor.png" width="100%" alt="Compliance Advisor">
+<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/compliance_advisor.png" width="100%" alt="AI Compliance Advisor" />
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `GROQ_KEY` | Yes | Groq API key for LLaMA 3.1 |
+| `JWT_SECRET` | Yes | JWT signing secret |
+| `ENCRYPTION_KEY` | Yes | Fernet key for PII encryption |
+| `EMAIL_USER` | No | Gmail address for MFA OTP |
+| `EMAIL_PASS` | No | Gmail app password |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
+| `REDIS_URL` | No | Redis URL (default: redis://localhost:6379) |
+
+---
+
+*Built with ❤️ — DeepFrog AI Solutions Pvt. Ltd.*

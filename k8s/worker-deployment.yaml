@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: customs-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: customsagent-backend:latest
+          imagePullPolicy: Never
+          command: ["python", "worker.py"]
+          env:
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"
+            - name: WORKER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: GROQ_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: customs-secrets
+                  key: GROQ_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: customs-secrets
+                  key: JWT_SECRET
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: customs-secrets
+                  key: ENCRYPTION_KEY
+            - name: EMAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: customs-secrets
+                  key: EMAIL_USER
+            - name: EMAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: customs-secrets
+                  key: EMAIL_PASS
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

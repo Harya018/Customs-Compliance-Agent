@@ -10,6 +10,7 @@ services:
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     volumes:
       - ./users.db:/app/users.db
       - ./scans.db:/app/scans.db
@@ -26,6 +27,104 @@ services:
     networks:
       - customs-network
 
+  # ── Worker 1: async document processing — picks jobs atomically from Redis ────
+  worker-1:
+    build: .
+    command: python worker_traced.py
+    environment:
+      - REDIS_URL=redis://redis-internal:6379
+      - WORKER_ID=worker-1
+      - GROQ_KEY=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
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+    volumes:
+      - ./users.db:/app/users.db
+      - ./scans.db:/app/scans.db
+      - ./logs:/app/logs
+    depends_on:
+      - redis-internal
+    networks:
+      - customs-network
+    restart: unless-stopped
+
+  # ── Worker 2: second parallel worker — proves 2-worker parallelisation ────────
+  worker-2:
+    build: .
+    command: python worker_traced.py
+    environment:
+      - REDIS_URL=redis://redis-internal:6379
+      - WORKER_ID=worker-2
+      - GROQ_KEY=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
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+    volumes:
+      - ./users.db:/app/users.db
+      - ./scans.db:/app/scans.db
+      - ./logs:/app/logs
+    depends_on:
+      - redis-internal
+    networks:
+      - customs-network
+    restart: unless-stopped
+
+  # ── Internal Redis for worker queue (discoverable by service name) ─────────────
+  redis-internal:
+    image: redis:alpine
+    networks:
+      - customs-network
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    user: "0"
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+      - loki-wal:/wal
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - customs-network
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - ./logs:/var/log/customs
+      - ./observability/promtail-config.yaml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - customs-network
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana-datasource.yaml:/etc/grafana/provisioning/datasources/loki.yaml
+      - ./observability/grafana-dashboard-provider.yaml:/etc/grafana/provisioning/dashboards/provider.yaml
+      - ./observability/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/customs.json
+    depends_on:
+      - loki
+    networks:
+      - customs-network
+
 networks:
   customs-network:
     driver: bridge
+
+volumes:
+  loki-data:
+  loki-wal:
+  grafana-data:
+  postgres-data:

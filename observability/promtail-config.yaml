@@ -1,0 +1,57 @@
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ── Backend API logs (structured JSON, one line per request) ─────────────────
+  - job_name: customs-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: customs-agent
+          service: backend
+          __path__: /var/log/customs/app.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            endpoint: endpoint
+            user_id: user_id
+            request_id: request_id
+            message: message
+      - labels:
+          level:
+          endpoint:
+
+  # ── Worker async job logs (structured JSON, one line per job event) ──────────
+  - job_name: customs-worker
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: customs-agent
+          service: worker
+          __path__: /var/log/customs/worker.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            worker_id: worker_id
+            job_id: job_id
+            scan_id: scan_id
+            country: country
+            status: status
+            duration_ms: duration_ms
+            message: message
+      - labels:
+          level:
+          worker_id:
+          status:

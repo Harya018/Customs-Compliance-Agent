@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 
 const API = 'http://localhost:8000';
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 
 const COUNTRY_RULES = {
   IN: { max_value_usd: 800, notes: "Values above USD 800 require Bill of Entry filing", restricted: ["9301", "9302"] },
@@ -20,13 +22,12 @@ function extractFields(result) {
   if (result?.fields && Object.keys(result.fields).length > 0) {
     return result.fields;
   }
-  
+
   const raw = result?.raw_output;
   if (!raw || typeof raw !== 'string') return null;
-  
+
   let content = raw;
   try {
-    // Try to parse the original UiRobot envelope first
     const outer = JSON.parse(raw);
     const resultStr = outer?.out_ResultJSON;
     if (resultStr) {
@@ -34,7 +35,7 @@ function extractFields(result) {
       content = inner?.openai_response?.choices?.[0]?.message?.content || raw;
     }
   } catch {
-    // If it's not the JSON envelope, just use the raw string directly
+    // Not a JSON envelope, use raw string directly
   }
 
   try {
@@ -90,8 +91,128 @@ function FieldCard({ label, value, highlight }) {
   );
 }
 
+// ── OTP Verification Screen ────────────────────────────────────────────────────
+function OTPScreen({ userId, onSuccess }) {
+  const [otp, setOtp] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.post(`${API}/auth/verify-otp`, { user_id: userId, otp });
+      localStorage.setItem('ca_token', res.data.access_token);
+      localStorage.setItem('ca_rtoken', res.data.refresh_token);
+      localStorage.setItem('ca_user', JSON.stringify(res.data.user));
+      onSuccess(res.data.user);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Invalid OTP. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'Inter, sans-serif'
+    }}>
+      <div style={{
+        background: 'rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 20, padding: '48px 40px',
+        width: '100%', maxWidth: 420,
+        boxShadow: '0 25px 50px rgba(0,0,0,0.4)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>🔐</div>
+          <h1 style={{ color: 'white', fontSize: 22, fontWeight: 700, margin: 0 }}>Two-Factor Verification</h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, marginTop: 8 }}>
+            Enter the 6-digit OTP sent to your email.
+          </p>
+        </div>
+        <form onSubmit={handleVerify}>
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 6 }}>OTP Code</label>
+            <input
+              id="otp-input"
+              type="text"
+              value={otp}
+              onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              required
+              maxLength={6}
+              placeholder="123456"
+              style={{
+                width: '100%', padding: '14px', borderRadius: 10, textAlign: 'center',
+                border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)',
+                color: 'white', fontSize: 24, letterSpacing: 8, outline: 'none', boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          {error && (
+            <div style={{ background: 'rgba(252,129,129,0.15)', border: '1px solid rgba(252,129,129,0.4)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#fc8181', fontSize: 14 }}>
+              {error}
+            </div>
+          )}
+          <button id="otp-submit" type="submit" disabled={loading || otp.length !== 6} style={{
+            width: '100%', padding: '13px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
+            background: (loading || otp.length !== 6) ? 'rgba(255,255,255,0.2)' : 'linear-gradient(135deg, #667eea, #764ba2)',
+            color: 'white', fontWeight: 700, fontSize: 16, transition: 'all 0.2s'
+          }}>
+            {loading ? '⏳ Verifying...' : 'Verify OTP'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Google Login Button ────────────────────────────────────────────────────────
+function GoogleLoginButton({ onSuccess, onError }) {
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await axios.post(`${API}/auth/google`, { token: tokenResponse.access_token });
+        localStorage.setItem('ca_token', res.data.access_token);
+        localStorage.setItem('ca_rtoken', res.data.refresh_token);
+        localStorage.setItem('ca_user', JSON.stringify(res.data.user));
+        onSuccess(res.data.user);
+      } catch (err) {
+        onError(err.response?.data?.detail || 'Google login failed');
+      }
+    },
+    onError: () => onError('Google authentication failed'),
+  });
+
+  return (
+    <button
+      id="google-login-btn"
+      type="button"
+      onClick={() => login()}
+      style={{
+        width: '100%', padding: '12px 0', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)',
+        background: 'rgba(255,255,255,0.08)', color: 'white', fontWeight: 600, fontSize: 15,
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        marginBottom: 16, transition: 'all 0.2s'
+      }}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+  );
+}
+
 // ── Login / Register Page ──────────────────────────────────────────────────────
-function AuthPage({ onAuth }) {
+function AuthPage({ onAuth, onMFA }) {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,6 +226,13 @@ function AuthPage({ onAuth }) {
     try {
       const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
       const res = await axios.post(`${API}${endpoint}`, { email, password });
+
+      // MFA flow — if server says OTP required
+      if (res.data.mfa_required) {
+        onMFA(res.data.user_id);
+        return;
+      }
+
       localStorage.setItem('ca_token', res.data.access_token);
       localStorage.setItem('ca_rtoken', res.data.refresh_token);
       localStorage.setItem('ca_user', JSON.stringify(res.data.user));
@@ -150,6 +278,18 @@ function AuthPage({ onAuth }) {
             </button>
           ))}
         </div>
+
+        {/* Google Login Button — only on Sign In */}
+        {mode === 'login' && GOOGLE_CLIENT_ID && (
+          <>
+            <GoogleLoginButton onSuccess={onAuth} onError={setError} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>or</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+            </div>
+          </>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
@@ -272,8 +412,9 @@ function HistoryPanel({ onSelectScan }) {
 }
 
 // ── Main App ───────────────────────────────────────────────────────────────────
-export default function App() {
+function AppInner() {
   const [user, setUser] = useState(getUser());
+  const [mfaUserId, setMfaUserId] = useState(null);
   const [tab, setTab] = useState('analyze');
 
   // Analyze states
@@ -292,11 +433,10 @@ export default function App() {
   // History scan view
   const [histScan, setHistScan] = useState(null);
 
-  // ── Auth ─────────────────────────────────────────────────────────────────────
-  const handleAuth = (u) => setUser(u);
-  const handleLogout = () => { clearAuth(); setUser(null); setResult(null); setJobId(null); };
-
-// Polling removed for synchronous execution.
+  // ── Auth ──────────────────────────────────────────────────────────────────────
+  const handleAuth = (u) => { setUser(u); setMfaUserId(null); };
+  const handleLogout = () => { clearAuth(); setUser(null); setResult(null); setMfaUserId(null); setJobId(null); };
+  const handleMFA = (userId) => setMfaUserId(userId);
 
   const getExplanation = async (fields, country, issues) => {
     setExplaining(true);
@@ -343,23 +483,22 @@ export default function App() {
 
       setSteps(s => [...s, `🌍 Validating against ${country} customs rules...`]);
 
-      // Sync execution handling (Immediate Return)
       if (res.data.status === 'success') {
-          setResult(res.data);
-          setSteps(s => [...s, '✅ Analysis complete!']);
-          
-          const f = extractFields(res.data);
-          if (f) {
-            const rules = COUNTRY_RULES[country];
-            const val = parseFloat(f?.Value) || 0;
-            const issues = [];
-            if (val > rules.max_value_usd) issues.push(`Value USD ${val} exceeds ${country} threshold of USD ${rules.max_value_usd}`);
-            if (rules.restricted.some(r => String(f?.HSCode || "").startsWith(r))) issues.push(`HS Code ${f.HSCode} is restricted for ${country} imports`);
-            getExplanation(f, country, issues);
-          }
+        setResult(res.data);
+        setSteps(s => [...s, '✅ Analysis complete!']);
+
+        const f = extractFields(res.data);
+        if (f) {
+          const rules = COUNTRY_RULES[country];
+          const val = parseFloat(f?.Value) || 0;
+          const issues = [];
+          if (val > rules.max_value_usd) issues.push(`Value USD ${val} exceeds ${country} threshold of USD ${rules.max_value_usd}`);
+          if (rules.restricted.some(r => String(f?.HSCode || "").startsWith(r))) issues.push(`HS Code ${f.HSCode} is restricted for ${country} imports`);
+          getExplanation(f, country, issues);
+        }
       } else {
-          setError(res.data.error || 'Document processing failed synchronously.');
-          setSteps(s => [...s, '❌ Processing failed']);
+        setError(res.data.error || 'Document processing failed synchronously.');
+        setSteps(s => [...s, '❌ Processing failed']);
       }
     } catch (e) {
       setError(e.response?.status === 401
@@ -371,8 +510,11 @@ export default function App() {
 
   const fields = result ? extractFields(result) : null;
 
+  // ── MFA Screen ────────────────────────────────────────────────────────────────
+  if (!user && mfaUserId) return <OTPScreen userId={mfaUserId} onSuccess={handleAuth} />;
+
   // ── Not logged in ─────────────────────────────────────────────────────────────
-  if (!user) return <AuthPage onAuth={handleAuth} />;
+  if (!user) return <AuthPage onAuth={handleAuth} onMFA={handleMFA} />;
 
   // ── Main UI ───────────────────────────────────────────────────────────────────
   return (
@@ -494,11 +636,10 @@ export default function App() {
                 📧 Send results to my email ({user.email})
               </label>
 
-              {/* Processing Steps & Job ID */}
+              {/* Processing Steps */}
               {steps.length > 0 && (
                 <div style={{ marginTop: 24, background: '#f8f9fa', borderRadius: 12, padding: 20 }}>
                   <h3 style={{ marginTop: 0, fontSize: 15, color: '#4a5568' }}>⚙️ Processing</h3>
-
                   {steps.map((step, i) => (
                     <div key={i} style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0',
@@ -561,16 +702,13 @@ export default function App() {
                     {result?.raw_output && (() => {
                       try {
                         let content = result.raw_output;
-                        // Try unwrap UiRobot first
                         try {
-                           const outer = JSON.parse(content);
-                           if(outer?.out_ResultJSON) {
-                               const inner = JSON.parse(outer.out_ResultJSON);
-                               content = inner?.openai_response?.choices?.[0]?.message?.content || content;
-                           }
-                        } catch(e) {}
-                        
-                        // Strip out the json block to leave just the reasoning
+                          const outer = JSON.parse(content);
+                          if (outer?.out_ResultJSON) {
+                            const inner = JSON.parse(outer.out_ResultJSON);
+                            content = inner?.openai_response?.choices?.[0]?.message?.content || content;
+                          }
+                        } catch (e) { }
                         content = content.replace(/```json\n[\s\S]*?```/g, '').trim();
                         if (!content) return <p>No reasoning available</p>;
                         return content.split('\n').filter(l => l.trim()).map((line, i) => <p key={i} style={{ margin: '4px 0' }}>{line}</p>);
@@ -599,4 +737,16 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+// ── Root with GoogleOAuthProvider ──────────────────────────────────────────────
+export default function App() {
+  if (GOOGLE_CLIENT_ID) {
+    return (
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <AppInner />
+      </GoogleOAuthProvider>
+    );
+  }
+  return <AppInner />;
 }

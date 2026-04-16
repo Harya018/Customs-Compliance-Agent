@@ -9,7 +9,6 @@ SCANS_DB_PATH = os.path.join(DB_DIR, "scans.db")
 
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
-    # Use a fallback key if not provided (not recommended for production)
     ENCRYPTION_KEY = Fernet.generate_key().decode()
 cipher_suite = Fernet(ENCRYPTION_KEY.encode())
 
@@ -44,7 +43,6 @@ def decrypt_pii(encrypted_data: str) -> str:
     try:
         return cipher_suite.decrypt(encrypted_data.encode()).decode()
     except Exception:
-        # Fallback if the data wasn't encrypted (e.g. legacy cleartext)
         return encrypted_data
 
 
@@ -70,15 +68,17 @@ def init_db():
     """)
     u_conn.commit()
 
-    # Soft migration for MFA
-    try:
-        u_conn.execute("ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0")
-        u_conn.execute("ALTER TABLE users ADD COLUMN otp_code TEXT")
-        u_conn.execute("ALTER TABLE users ADD COLUMN otp_expires TEXT")
-        u_conn.commit()
-    except sqlite3.OperationalError:
-        # Columns likely already exist
-        pass
+    # Soft migration — each column in its own try/except so existing DBs don't crash
+    for col_def in [
+        "ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN otp_code TEXT",
+        "ALTER TABLE users ADD COLUMN otp_expires TEXT",
+    ]:
+        try:
+            u_conn.execute(col_def)
+            u_conn.commit()
+        except sqlite3.OperationalError:
+            pass  # Column already exists
 
     # SCANS DB
     s_conn = get_scan_db()
