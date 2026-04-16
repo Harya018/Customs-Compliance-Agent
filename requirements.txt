@@ -1,9 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard]
 httpx
 python-multipart
 redis
 rq==1.16.1
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 python-dotenv
+cryptography

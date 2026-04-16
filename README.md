@@ -1,108 +1,57 @@
 # Customs Compliance Agent
 
 ## Problem Statement
-Autonomous AI agent that extracts, validates, and generates customs-compliant documentation from invoices and bills of lading.
+Build an AI agent that extracts, validates, and generates customs-compliant documentation from invoices and bills of lading.
 
 ## Solution
-Full-stack customs compliance platform with UiPath document processing, Groq AI classification, Redis queue, JWT auth, and multi-country validation.
+Autonomous customs compliance platform with UiPath document processing, Groq AI classification, Redis queue with 2 parallel workers, JWT authentication, and multi-country validation.
 
 ## Tech Stack
-- **Frontend**: React.js
-- **Backend**: FastAPI (Python)
-- **AI Orchestration**: UiPath + Groq LLaMA 3.1
-- **Queue**: Redis + RQ (2 workers)
-- **Auth**: JWT + bcrypt
-- **Database**: SQLite (`users.db`, `scans.db`)
-- **Container**: Docker + docker-compose
-
-## How to Run
-1. Clone the repo
-2. Add your keys to `.env` file:
-   ```
-   GROQ_KEY=your_groq_key_here
-   JWT_SECRET=customs_agent_secret_key_2024
-   EMAIL_USER=your@gmail.com   # optional
-   EMAIL_PASS=your_app_password  # optional
-   REDIS_URL=redis://localhost:6379
-   ```
-3. Run: `docker-compose up --build`
-4. Open http://localhost:3000
-
-## Development (without Docker)
-```bash
-# Backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-
-# Workers (2 terminals)
-WORKER_ID=worker1 python worker.py
-WORKER_ID=worker2 python worker.py
-
-# Frontend
-cd frontend
-npm install
-npm start
-```
+- Frontend: React.js (Docker)
+- Backend: FastAPI Python (Docker)
+- AI Orchestration: UiPath + Groq LLaMA 3.1
+- Queue: Redis + RQ (2 parallel workers, atomic pickup, idempotency)
+- Auth: JWT + bcrypt + RBAC (Admin/User roles)
+- Database: SQLite (users.db, scans.db)
+- Container: Docker + docker-compose (single network)
 
 ## Architecture
-- **Event-driven**: frontend → backend → Redis queue → workers → result
-- **2 parallel workers** for document processing
-- **JWT-protected** API endpoints (access token 30 min, refresh 7 days)
-- **Scan history** per user stored in SQLite
-- **RBAC**: admin sees all scans, user sees only their own
+Event-driven pipeline:
+Browser → FastAPI → Redis Queue → Worker1/Worker2 → UiPath → Groq AI → Result
+
+## How to Run
+1. Start Redis: `docker run -d -p 6379:6379 --name standalone-redis redis:alpine`
+2. Start containers: `cd C:\CustomsAgent && docker-compose up --build -d`
+3. Start workers: `.\start_workers.ps1`
+4. Open: http://localhost:3000
 
 ## API Endpoints
-
-### Auth
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/auth/register` | Register new user, returns JWT |
-| POST | `/auth/login` | Login, returns access + refresh tokens |
-| POST | `/auth/refresh` | Refresh access token |
-| GET | `/auth/me` | Current user info (requires auth) |
-
-### Analysis
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/analyze` | Upload document → enqueues job, returns job_id (protected) |
-| GET | `/job/{job_id}` | Poll job status + result (protected) |
-| POST | `/explain` | Groq AI compliance explanation (protected) |
-
-### History
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/history` | Last 20 scans for current user (protected) |
-| GET | `/history/{scan_id}` | Specific scan result (protected) |
-
-### System
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check + Redis status |
-
-## File Structure
-```
-C:\CustomsAgent\
-  ├── main.py          ← FastAPI backend (all endpoints)
-  ├── auth.py          ← JWT auth + bcrypt + users.db
-  ├── database.py      ← Scan history (scans.db)
-  ├── worker.py        ← RQ worker (run 2 instances)
-  ├── requirements.txt ← Python dependencies
-  ├── Dockerfile       ← Backend container
-  ├── docker-compose.yml ← Full stack orchestration
-  ├── .env             ← Environment variables
-  ├── rules.json       ← Compliance rules (IN, UAE, USA)
-  └── frontend\
-        ├── Dockerfile ← Frontend container
-        └── src\
-              └── App.js ← React SPA
-```
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | /auth/register | Register user | No |
+| POST | /auth/login | Login, get JWT | No |
+| POST | /auth/refresh | Refresh token | No |
+| GET | /auth/me | Current user | Yes |
+| POST | /analyze | Analyze document | Yes |
+| GET | /job/{id} | Job status | Yes |
+| POST | /explain | AI compliance advice | Yes |
+| GET | /history | Scan history | Yes |
+| GET | /health | System health | No |
 
 ## Security
-- Passwords hashed with bcrypt (passlib)
-- JWT signed with HS256 (python-jose)
-- All `/analyze`, `/explain`, `/history` endpoints require `Authorization: Bearer <token>`
-- CORS configured for `localhost:3000`
+- JWT access tokens (30 min expiry)
+- Refresh tokens (7 days)
+- bcrypt password hashing
+- RBAC: Admin sees all scans, User sees own scans only
+- PII not exposed in frontend API calls
 
-## Email Notifications (Optional)
-If `EMAIL_USER` and `EMAIL_PASS` are set in `.env`, users can receive email reports after each scan.
-Uses Gmail SMTP (smtp.gmail.com:587). Requires a Gmail App Password.
+## Scalability
+- Redis queue with 2 workers running in parallel
+- Tasks picked atomically — no duplicate processing
+- Idempotency maintained via job ID tracking
+- Add more workers to scale horizontally
+
+## Countries Supported
+- India (IN) — threshold USD 800, Bill of Entry required above
+- UAE — threshold USD 1000, VAT registration required
+- USA — threshold USD 800, Section 321 de minimis applies

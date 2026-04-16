@@ -16,13 +16,28 @@ const clearAuth = () => { localStorage.removeItem('ca_token'); localStorage.remo
 const getUser = () => { try { return JSON.parse(localStorage.getItem('ca_user')); } catch { return null; } };
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
-// ── Field extraction ───────────────────────────────────────────────────────────
-function extractFields(raw) {
+function extractFields(result) {
+  if (result?.fields && Object.keys(result.fields).length > 0) {
+    return result.fields;
+  }
+  
+  const raw = result?.raw_output;
+  if (!raw || typeof raw !== 'string') return null;
+  
+  let content = raw;
   try {
+    // Try to parse the original UiRobot envelope first
     const outer = JSON.parse(raw);
     const resultStr = outer?.out_ResultJSON;
-    const inner = JSON.parse(resultStr);
-    const content = inner?.openai_response?.choices?.[0]?.message?.content || "";
+    if (resultStr) {
+      const inner = JSON.parse(resultStr);
+      content = inner?.openai_response?.choices?.[0]?.message?.content || raw;
+    }
+  } catch {
+    // If it's not the JSON envelope, just use the raw string directly
+  }
+
+  try {
     const matches = [...content.matchAll(/```json\n([\s\S]*?)```/g)];
     if (!matches.length) return null;
     const parsed = JSON.parse(matches[matches.length - 1][1]);
@@ -281,46 +296,7 @@ export default function App() {
   const handleAuth = (u) => setUser(u);
   const handleLogout = () => { clearAuth(); setUser(null); setResult(null); setJobId(null); };
 
-  // ── Polling ───────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!jobId || !polling) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await axios.get(`${API}/job/${jobId}`, { headers: authHeader() });
-        const { status: jobStatus, result: jobResult } = res.data;
-
-        if (jobStatus === 'finished' && jobResult) {
-          setPolling(false);
-          setLoading(false);
-          setResult(jobResult);
-          setSteps(s => [...s.filter(x => !x.includes('Waiting')), '✅ Analysis complete!']);
-
-          const f = jobResult.fields || extractFields(jobResult.raw_output || '');
-          if (f) {
-            const rules = COUNTRY_RULES[country];
-            const val = parseFloat(f?.Value) || 0;
-            const issues = [];
-            if (val > rules.max_value_usd) issues.push(`Value USD ${val} exceeds ${country} threshold of USD ${rules.max_value_usd}`);
-            if (rules.restricted.some(r => String(f?.HSCode || "").startsWith(r))) issues.push(`HS Code ${f.HSCode} is restricted for ${country} imports`);
-            getExplanation(f, country, issues);
-          }
-        } else if (jobStatus === 'failed') {
-          setPolling(false);
-          setLoading(false);
-          setError('Document processing failed on worker. Check server logs.');
-          setSteps(s => [...s, '❌ Processing failed']);
-        } else {
-          setSteps(s => {
-            const base = s.filter(x => !x.includes('Waiting'));
-            return [...base, `⏳ Waiting for worker... (${jobStatus})`];
-          });
-        }
-      } catch (e) {
-        console.error('Poll error:', e);
-      }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [jobId, polling, country]);
+// Polling removed for synchronous execution.
 
   const getExplanation = async (fields, country, issues) => {
     setExplaining(true);
@@ -367,28 +343,23 @@ export default function App() {
 
       setSteps(s => [...s, `🌍 Validating against ${country} customs rules...`]);
 
-      // Async (Redis) path
-      if (res.data.job_id) {
-        setJobId(res.data.job_id);
-        setPolling(true);
-        setSteps(s => [...s, `🔄 Job queued: ${res.data.job_id}`]);
-        // Don't set loading false yet — polling will handle it
-        return;
-      }
-
-      // Sync fallback path
-      await new Promise(r => setTimeout(r, 300));
-      setResult(res.data);
-      setSteps(s => [...s, '✅ Analysis complete!']);
-
-      const f = res.data.fields || extractFields(res.data.raw_output || '');
-      if (f) {
-        const rules = COUNTRY_RULES[country];
-        const val = parseFloat(f?.Value) || 0;
-        const issues = [];
-        if (val > rules.max_value_usd) issues.push(`Value USD ${val} exceeds ${country} threshold of USD ${rules.max_value_usd}`);
-        if (rules.restricted.some(r => String(f?.HSCode || "").startsWith(r))) issues.push(`HS Code ${f.HSCode} is restricted for ${country} imports`);
-        getExplanation(f, country, issues);
+      // Sync execution handling (Immediate Return)
+      if (res.data.status === 'success') {
+          setResult(res.data);
+          setSteps(s => [...s, '✅ Analysis complete!']);
+          
+          const f = extractFields(res.data);
+          if (f) {
+            const rules = COUNTRY_RULES[country];
+            const val = parseFloat(f?.Value) || 0;
+            const issues = [];
+            if (val > rules.max_value_usd) issues.push(`Value USD ${val} exceeds ${country} threshold of USD ${rules.max_value_usd}`);
+            if (rules.restricted.some(r => String(f?.HSCode || "").startsWith(r))) issues.push(`HS Code ${f.HSCode} is restricted for ${country} imports`);
+            getExplanation(f, country, issues);
+          }
+      } else {
+          setError(res.data.error || 'Document processing failed synchronously.');
+          setSteps(s => [...s, '❌ Processing failed']);
       }
     } catch (e) {
       setError(e.response?.status === 401
@@ -398,9 +369,7 @@ export default function App() {
     setLoading(false);
   };
 
-  const fields = result
-    ? (result.fields && Object.keys(result.fields).length ? result.fields : extractFields(result.raw_output || ''))
-    : null;
+  const fields = result ? extractFields(result) : null;
 
   // ── Not logged in ─────────────────────────────────────────────────────────────
   if (!user) return <AuthPage onAuth={handleAuth} />;
@@ -529,11 +498,7 @@ export default function App() {
               {steps.length > 0 && (
                 <div style={{ marginTop: 24, background: '#f8f9fa', borderRadius: 12, padding: 20 }}>
                   <h3 style={{ marginTop: 0, fontSize: 15, color: '#4a5568' }}>⚙️ Processing</h3>
-                  {jobId && (
-                    <div style={{ background: '#ebf8ff', border: '1px solid #90cdf4', borderRadius: 8, padding: '8px 14px', marginBottom: 12, fontSize: 13 }}>
-                      🔑 Job ID: <code style={{ fontFamily: 'monospace', color: '#2b6cb0' }}>{jobId}</code>
-                    </div>
-                  )}
+
                   {steps.map((step, i) => (
                     <div key={i} style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0',
@@ -595,10 +560,20 @@ export default function App() {
                   <div style={{ background: '#f8f9fa', borderRadius: 8, padding: 16, fontSize: 14, lineHeight: 1.7, color: '#4a5568' }}>
                     {result?.raw_output && (() => {
                       try {
-                        const outer = JSON.parse(result.raw_output);
-                        const inner = JSON.parse(outer.out_ResultJSON);
-                        const content = inner?.openai_response?.choices?.[0]?.message?.content || "";
-                        return content.split('\n').map((line, i) => <p key={i} style={{ margin: '4px 0' }}>{line}</p>);
+                        let content = result.raw_output;
+                        // Try unwrap UiRobot first
+                        try {
+                           const outer = JSON.parse(content);
+                           if(outer?.out_ResultJSON) {
+                               const inner = JSON.parse(outer.out_ResultJSON);
+                               content = inner?.openai_response?.choices?.[0]?.message?.content || content;
+                           }
+                        } catch(e) {}
+                        
+                        // Strip out the json block to leave just the reasoning
+                        content = content.replace(/```json\n[\s\S]*?```/g, '').trim();
+                        if (!content) return <p>No reasoning available</p>;
+                        return content.split('\n').filter(l => l.trim()).map((line, i) => <p key={i} style={{ margin: '4px 0' }}>{line}</p>);
                       } catch { return <p>No reasoning available</p>; }
                     })()}
                   </div>

@@ -1,0 +1,5 @@
+2026-04-16 10:27:12,078 - INFO - Database initialized. Starting application.
+2026-04-16 10:27:29,438 - INFO - [ReqID: 78c14f91-f2c8-4e0f-95aa-2bd8c35dc749] START GET /health | User: Anonymous
+2026-04-16 10:27:29,440 - INFO - [ReqID: 78c14f91-f2c8-4e0f-95aa-2bd8c35dc749] END GET /health | Status: 200 | Time: 1.79ms
+2026-04-16 10:27:38,569 - INFO - [ReqID: 78779f70-5852-40bb-8634-addcc8580ed0] START GET /health | User: Anonymous
+2026-04-16 10:27:38,570 - INFO - [ReqID: 78779f70-5852-40bb-8634-addcc8580ed0] END GET /health | Status: 200 | Time: 1.81ms
