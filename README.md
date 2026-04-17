@@ -221,11 +221,26 @@ Resources created:
 
 ## Screenshots
 
-<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/scan_process.png" width="100%" alt="Document Analysis Flow" />
+### Login — Enterprise Dark UI
+![Login Page](screenshots/01_login.png)
 
-<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/extracted_fields.png" width="100%" alt="Extracted Fields Grid" />
+### Dashboard — Live Metrics from PostgreSQL
+![Dashboard](screenshots/02_dashboard.png)
 
-<img src="https://raw.githubusercontent.com/Harya018/Customs-Compliance-Agent/main/assets/compliance_advisor.png" width="100%" alt="AI Compliance Advisor" />
+### New Scan — Drag & Drop + AI Pipeline
+![New Document Scan](screenshots/03_new_scan.png)
+
+### Scan History — Search, Filter & Export
+![Scan History](screenshots/04_scan_history.png)
+
+### Analytics — CSS Charts (no external libraries)
+![Analytics](screenshots/05_analytics.png)
+
+### Settings — Account & System Status
+![Settings](screenshots/06_settings.png)
+
+### Grafana — Loki Log Observability
+![Grafana Observability](screenshots/07_grafana.png)
 
 ---
 
